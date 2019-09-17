@@ -1,4 +1,4 @@
-// Time : 2019/8/22 下午8:49 
+// Time : 2019/8/22 下午8:49
 // Author : MashiroC
 
 // util something
@@ -31,11 +31,10 @@ func Send(buf *bufio.ReadWriter, opcode byte, payload []byte) {
 		// a % b = a & (b-1)
 		len2 := byte(payloadSize * 7)
 		header = []byte{255, len1, len2, opcode}
-	} else if payloadSize <=254{
+	} else if payloadSize <= 254 {
 		//fmt.Println(payloadSize)
 		header = []byte{byte(payloadSize), opcode}
-	}else{
-		fmt.Println("fuck?")
+	} else {
 		return
 	}
 

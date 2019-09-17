@@ -1,17 +1,16 @@
-// Time : 2019/8/23 下午2:38 
+// Time : 2019/8/23 下午2:38
 // Author : MashiroC
 
 // sdk something
 package sdk
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
-	"log"
-	"mashiroc.fun/redrpc/center"
-	"mashiroc.fun/redrpc/util"
+	"mashiroc.fun/begoniarpc/conn"
+	"mashiroc.fun/begoniarpc/entity"
+	"mashiroc.fun/begoniarpc/util/log"
 	"net"
 	"reflect"
 	"sync"
@@ -19,33 +18,32 @@ import (
 
 type RedRpcClient struct {
 	serviceMap map[string]ServiceEntity
-	conn       net.Conn
-	buf        *bufio.ReadWriter
+	conn       conn.Conn
 	callMap    map[string]chan RespEntity
 	lock       sync.Mutex
 	callLock   sync.Mutex
 }
 
 type SignEntity struct {
-	Service []ServiceEntity `json:"service"`
+	Service []ServiceEntity `json:"1"`
 }
 
 type ServiceEntity struct {
 	service  interface{}
-	Name     string   `json:"name"`
-	Function []string `json:"function"`
+	Name     string   `json:"1"`
+	Function []string `json:"2"`
 }
 
 type CallEntity struct {
-	Uuid     string `json:"1"`
-	Service  string `json:"2"`
-	Function string `json:"3"`
-	Param    Params `json:"4"`
+	Uuid     string       `json:"1"`
+	Service  string       `json:"2"`
+	Function string       `json:"3"`
+	Param    entity.Param `json:"4"`
 }
 
 type RespEntity struct {
-	Uuid string `json:"1"`
-	Data Params `json:"2"`
+	Uuid string       `json:"1"`
+	Data entity.Param `json:"2"`
 }
 
 func Default(centerAddr string) (cli *RedRpcClient) {
@@ -61,7 +59,7 @@ func (cli *RedRpcClient) Test() {
 	fmt.Println(cli.callMap)
 }
 
-func (cli *RedRpcClient) Call(service, function string, param Params) (res Params) {
+func (cli *RedRpcClient) Call(service, function string, param entity.Param) (res entity.Param) {
 	u1 := uuid.NewV4()
 	e := CallEntity{
 		Uuid:     u1.String(),
@@ -70,8 +68,7 @@ func (cli *RedRpcClient) Call(service, function string, param Params) (res Param
 		Param:    param,
 	}
 	data, _ := json.Marshal(e)
-	util.Send(cli.buf, 2, data)
-
+	_ = cli.conn.WriteRequest(data)
 	ch := make(chan RespEntity, 1)
 	cli.callLock.Lock()
 	cli.callMap[e.Uuid] = ch
@@ -81,7 +78,7 @@ func (cli *RedRpcClient) Call(service, function string, param Params) (res Param
 	return
 }
 
-func (cli *RedRpcClient) CallAsyn(service, fun string, param Params, callback func(Params)) {
+func (cli *RedRpcClient) CallAsyn(service, fun string, param entity.Param, callback func(entity.Param)) {
 	u1 := uuid.NewV4()
 	e := CallEntity{
 		Uuid:     u1.String(),
@@ -90,7 +87,8 @@ func (cli *RedRpcClient) CallAsyn(service, fun string, param Params, callback fu
 		Param:    param,
 	}
 	data, _ := json.Marshal(e)
-	util.Send(cli.buf, 2, data)
+
+	cli.conn.WriteRequest(data)
 
 	ch := make(chan RespEntity, 1)
 	cli.callLock.Lock()
@@ -112,11 +110,11 @@ func (cli *RedRpcClient) Sign(name string, service interface{}) {
 	}
 	for i := 0; i < t.NumMethod(); i++ {
 		m := t.Method(i)
-		if m.Type.NumOut() != 1 || m.Type.Out(0) != reflect.TypeOf(Params{}) {
-			log.Fatal("return must Params")
+		if m.Type.NumOut() != 1 || m.Type.Out(0) != reflect.TypeOf(entity.Param{}) {
+			log.Fatal("return must entity.Param")
 		}
-		if m.Type.NumIn() != 2 || m.Type.In(1) != reflect.TypeOf(Params{}) {
-			log.Fatal("input must Params")
+		if m.Type.NumIn() != 2 || m.Type.In(1) != reflect.TypeOf(entity.Param{}) {
+			log.Fatal("input must entity.Param")
 		}
 		// 检查好了
 
@@ -130,7 +128,7 @@ func (cli *RedRpcClient) Sign(name string, service interface{}) {
 
 	b, _ := json.Marshal(e)
 
-	util.Send(cli.buf, 1, b)
+	cli.conn.WriteSign(b)
 
 }
 
@@ -141,23 +139,16 @@ func (cli *RedRpcClient) server(centerAddr string) {
 		log.Fatal(err.Error())
 	}
 
-	buf := center.CreateBuf(conn)
-	cli.conn = conn
-	cli.buf = buf
+	c := conn.NewConn(conn)
+	cli.conn = c
 	go func() {
-		lock := sync.Mutex{}
-		i := 0
 		for {
-			lock.Lock()
-			opcode, data, err := center.ReadData(conn)
-			lock.Unlock()
-			i++
-			//fmt.Println(i)
+			opcode, data, err := c.ReadData()
 			if err != nil {
+				log.Error(err)
 				break
 			}
 			go cli.operator(opcode, data)
-
 		}
 	}()
 
@@ -184,17 +175,19 @@ func (cli *RedRpcClient) handlerRequest(data []byte) {
 	}
 
 	server, ok := cli.serviceMap[e.Service]
+	//fmt.Println(cli.serviceMap)
 	if !ok {
 		r := RespEntity{
 			Uuid: e.Uuid,
-			Data: Params{
+			Data: entity.Param{
 				"errorCode":    "404",
 				"errorMessage": "service not found",
 			},
 		}
 		b, _ := json.Marshal(r)
-		util.SendError(cli.buf, b)
+		cli.conn.WriteError(b)
 	}
+
 	for _, f := range server.Function {
 		if f == e.Function {
 			cli.request(server, e)
@@ -204,17 +197,20 @@ func (cli *RedRpcClient) handlerRequest(data []byte) {
 }
 
 func (cli *RedRpcClient) handlerResponse(data []byte) {
+	//fmt.Println("handler resp", string(data))
 	resp := RespEntity{}
 	err := json.Unmarshal(data, &resp)
 	if err != nil {
-		log.Println("json error:", err.Error(), string(data))
+		log.Error("json error:", err.Error(), string(data))
 		return
 	}
+	//fmt.Println(cli.callMap)
+	//fmt.Println(resp.Uuid)
 	cli.callLock.Lock()
 	ch, ok := cli.callMap[resp.Uuid]
 	cli.callLock.Unlock()
 	if !ok {
-		log.Println("uuid not found")
+		log.Error("uuid not found")
 		return
 	}
 	cli.callLock.Lock()
@@ -226,20 +222,23 @@ func (cli *RedRpcClient) handlerResponse(data []byte) {
 
 func (cli *RedRpcClient) request(server ServiceEntity, e CallEntity) {
 	v := reflect.ValueOf(server.service)
+	if e.Param == nil {
+		//fmt.Println("fuck")
+		e.Param = make(entity.Param, 5)
+	}
 	attr := []reflect.Value{reflect.ValueOf(e.Param)}
 	res := v.MethodByName(e.Function).Call(attr)
-	p := res[0].Interface().(Params)
+	p := res[0].Interface().(entity.Param)
 	if res != nil {
 		data, _ := json.Marshal(RespEntity{
 			Uuid: e.Uuid,
 			Data: p,
 		})
-		util.Send(cli.buf, 3, data)
+		//fmt.Println(string(data))
+		cli.conn.WriteResponse(data)
 	}
 }
 
 func (cli *RedRpcClient) handerError(bytes []byte) {
-	fmt.Println(string(bytes))
+	fmt.Println("handler error", string(bytes))
 }
-
-type Params map[string]interface{}
