@@ -1,4 +1,4 @@
-module mashiroc.fun/begoniarpc
+module mashiroc.fun/begonia
 
 go 1.12
 

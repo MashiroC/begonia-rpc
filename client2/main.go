@@ -6,8 +6,8 @@ package main
 
 import (
 	"fmt"
-	"mashiroc.fun/begoniarpc/entity"
-	"mashiroc.fun/begoniarpc/sdk"
+	"mashiroc.fun/begonia/entity"
+	"mashiroc.fun/begonia/sdk"
 )
 
 func main() {

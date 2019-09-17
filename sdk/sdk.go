@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
-	"mashiroc.fun/begoniarpc/conn"
-	"mashiroc.fun/begoniarpc/entity"
-	"mashiroc.fun/begoniarpc/util/log"
+	begoniaConn "mashiroc.fun/begonia/conn"
+	"mashiroc.fun/begonia/entity"
+	"mashiroc.fun/begonia/util/log"
 	"net"
 	"reflect"
 	"sync"
@@ -18,7 +18,7 @@ import (
 
 type RedRpcClient struct {
 	serviceMap map[string]ServiceEntity
-	conn       conn.Conn
+	conn       begoniaConn.Conn
 	callMap    map[string]chan RespEntity
 	lock       sync.Mutex
 	callLock   sync.Mutex
@@ -35,14 +35,14 @@ type ServiceEntity struct {
 }
 
 type CallEntity struct {
-	Uuid     string       `json:"1"`
+	UUID     string       `json:"1"`
 	Service  string       `json:"2"`
 	Function string       `json:"3"`
 	Param    entity.Param `json:"4"`
 }
 
 type RespEntity struct {
-	Uuid string       `json:"1"`
+	UUID string       `json:"1"`
 	Data entity.Param `json:"2"`
 }
 
@@ -62,7 +62,7 @@ func (cli *RedRpcClient) Test() {
 func (cli *RedRpcClient) Call(service, function string, param entity.Param) (res entity.Param) {
 	u1 := uuid.NewV4()
 	e := CallEntity{
-		Uuid:     u1.String(),
+		UUID:     u1.String(),
 		Service:  service,
 		Function: function,
 		Param:    param,
@@ -71,7 +71,7 @@ func (cli *RedRpcClient) Call(service, function string, param entity.Param) (res
 	_ = cli.conn.WriteRequest(data)
 	ch := make(chan RespEntity, 1)
 	cli.callLock.Lock()
-	cli.callMap[e.Uuid] = ch
+	cli.callMap[e.UUID] = ch
 	cli.callLock.Unlock()
 	resp := <-ch
 	res = resp.Data
@@ -81,7 +81,7 @@ func (cli *RedRpcClient) Call(service, function string, param entity.Param) (res
 func (cli *RedRpcClient) CallAsyn(service, fun string, param entity.Param, callback func(entity.Param)) {
 	u1 := uuid.NewV4()
 	e := CallEntity{
-		Uuid:     u1.String(),
+		UUID:     u1.String(),
 		Service:  service,
 		Function: fun,
 		Param:    param,
@@ -92,7 +92,7 @@ func (cli *RedRpcClient) CallAsyn(service, fun string, param entity.Param, callb
 
 	ch := make(chan RespEntity, 1)
 	cli.callLock.Lock()
-	cli.callMap[e.Uuid] = ch
+	cli.callMap[e.UUID] = ch
 	cli.callLock.Unlock()
 	go func() {
 		resp := <-ch
@@ -139,13 +139,13 @@ func (cli *RedRpcClient) server(centerAddr string) {
 		log.Fatal(err.Error())
 	}
 
-	c := conn.NewConn(conn)
+	c := begoniaConn.NewConn(conn)
 	cli.conn = c
 	go func() {
 		for {
 			opcode, data, err := c.ReadData()
 			if err != nil {
-				log.Error(err)
+				log.Error("readData error: %s", err.Error())
 				break
 			}
 			go cli.operator(opcode, data)
@@ -178,10 +178,10 @@ func (cli *RedRpcClient) handlerRequest(data []byte) {
 	//fmt.Println(cli.serviceMap)
 	if !ok {
 		r := RespEntity{
-			Uuid: e.Uuid,
+			UUID: e.UUID,
 			Data: entity.Param{
 				"errorCode":    "404",
-				"errorMessage": "service not found",
+				"errorMessage": "server not found",
 			},
 		}
 		b, _ := json.Marshal(r)
@@ -201,20 +201,20 @@ func (cli *RedRpcClient) handlerResponse(data []byte) {
 	resp := RespEntity{}
 	err := json.Unmarshal(data, &resp)
 	if err != nil {
-		log.Error("json error:", err.Error(), string(data))
+		log.Error("json error: %s for data: %s", err.Error(), string(data))
 		return
 	}
 	//fmt.Println(cli.callMap)
-	//fmt.Println(resp.Uuid)
+	//fmt.Println(resp.UUID)
 	cli.callLock.Lock()
-	ch, ok := cli.callMap[resp.Uuid]
+	ch, ok := cli.callMap[resp.UUID]
 	cli.callLock.Unlock()
 	if !ok {
-		log.Error("uuid not found")
+		log.Error("uuid [%s] not found", resp.UUID)
 		return
 	}
 	cli.callLock.Lock()
-	delete(cli.callMap, resp.Uuid)
+	delete(cli.callMap, resp.UUID)
 	cli.callLock.Unlock()
 
 	ch <- resp
@@ -231,7 +231,7 @@ func (cli *RedRpcClient) request(server ServiceEntity, e CallEntity) {
 	p := res[0].Interface().(entity.Param)
 	if res != nil {
 		data, _ := json.Marshal(RespEntity{
-			Uuid: e.Uuid,
+			UUID: e.UUID,
 			Data: p,
 		})
 		//fmt.Println(string(data))

@@ -1,8 +1,8 @@
-package begonia_rpc
+package begonia
 
 import (
 	"fmt"
-	"mashiroc.fun/begoniarpc/entity"
+	"mashiroc.fun/begonia/entity"
 	"sync"
 )
 

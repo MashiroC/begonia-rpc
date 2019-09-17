@@ -1,9 +1,16 @@
-package begonia_rpc
+package begonia
 
 import (
-	"mashiroc.fun/begoniarpc/conn"
+	"mashiroc.fun/begonia/conn"
 	"sync"
 )
+
+// service 注册的服务
+type service struct {
+	name string
+	fun  []string
+	c    conn.Conn
+}
 
 type serviceMap struct {
 	data map[string]service

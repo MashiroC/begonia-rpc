@@ -4,9 +4,7 @@
 // redrpc something
 package main
 
-import (
-	"mashiroc.fun/begoniarpc"
-)
+import "mashiroc.fun/begoniarpc"
 
 func main() {
 	//app:= demo1.Server("127.0.0.1:1234")

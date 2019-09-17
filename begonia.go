@@ -1,24 +1,32 @@
-package begonia_rpc
+// begonia-rpc 轻量级rpc框架
+// 架构分为客户端 服务端 服务中心三部分
+// By MashiroC
+package begonia
 
 import (
-	conn2 "mashiroc.fun/begoniarpc/conn"
-	"mashiroc.fun/begoniarpc/util/log"
+	"encoding/json"
+	begoniaConn "mashiroc.fun/begonia/conn"
+	"mashiroc.fun/begonia/entity"
+	"mashiroc.fun/begonia/util/log"
 	"net"
 )
 
-type Server struct {
+// ServerCenter 服务中心的实体
+type ServerCenter struct {
 	resp *respHandler
 	call *callHandler
 }
 
-func Default() *Server {
-	return &Server{
+// Default 返回一个默认配置的服务中心
+func Default() *ServerCenter {
+	return &ServerCenter{
 		resp: newRespHandler(),
 		call: newCallHandler(),
 	}
 }
 
-func (s *Server) Run(addr string) {
+// Run 开始监听
+func (s *ServerCenter) Run(addr string) {
 	listener, err := net.Listen("tcp4", addr)
 	if err != nil {
 		panic(err)
@@ -26,10 +34,17 @@ func (s *Server) Run(addr string) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Error("conn failed : ", err)
+			log.Error("conn failed : %s", err)
 			continue
 		}
-		c := conn2.NewConn(conn)
+		c := begoniaConn.NewConn(conn)
 		go s.work(c)
 	}
+}
+
+// respError 向某条连接写一个异常
+func respError(conn begoniaConn.Conn, cErr entity.CallError) {
+	log.Error("remote [%s] frame has some error: %s", conn.Addr(), cErr.Error())
+	b, _ := json.Marshal(cErr)
+	_ = conn.WriteError(b)
 }

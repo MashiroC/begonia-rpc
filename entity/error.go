@@ -10,14 +10,16 @@ type CallError struct {
 }
 
 var (
+	ErrCodeUnknow = "114514"
+
 	ServiceSignedErr = CallError{
 		ErrCode:    "114514",
-		ErrMessage: "service has signed",
+		ErrMessage: "server has signed",
 	}
 
 	ServiceNotFoundErr = CallError{
 		ErrCode:    "114514",
-		ErrMessage: "service not found",
+		ErrMessage: "server not found",
 	}
 
 	FunctionNotFoundErr = CallError{
@@ -25,7 +27,7 @@ var (
 		ErrMessage: "function not found",
 	}
 
-	CallbackUuidNotFoundErr = CallError{
+	CallbackNotSignedErr = CallError{
 		ErrCode:    "114514",
 		ErrMessage: "callback uuid not found",
 	}

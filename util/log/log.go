@@ -12,30 +12,28 @@ const (
 	info  = 2
 )
 
-func Info(i ...interface{}) {
-	log(info, i)
+func Info(format string, i ...interface{}) {
+	log(info, format, i...)
 }
 
-func Warn(i ...interface{}) {
-	log(warn, i)
+func Warn(format string, i ...interface{}) {
+	log(warn, format, i...)
 }
 
-func Error(i ...interface{}) {
-	log(error, i)
+func Error(format string, i ...interface{}) {
+	log(error, format, i...)
 }
 
-func Fatal(i ...interface{}) {
-	log(error, i)
+func Fatal(format string, i ...interface{}) {
+	log(error, format, i...)
 	os.Exit(-2)
 }
 
-func log(level int, in ...interface{}) {
+func log(level int, format string, in ...interface{}) {
 	now := time.Now().String()
 	now = now[:19]
-	message := fmt.Sprintf("[magicloop] %s |", now)
-	for i := 0; i < len(in); i++ {
-		message = fmt.Sprintln(message, in[i])
-	}
+	header := fmt.Sprintf("[magicloop] %s | ", now)
+	message := header + fmt.Sprintf(format, in...)
 	logPrint(level, message)
 }
 

@@ -1,42 +1,33 @@
-package begonia_rpc
+package begonia
+
+// call.go 远程调用的处理中心
 
 import (
 	"encoding/json"
-	"mashiroc.fun/begoniarpc/conn"
-	"mashiroc.fun/begoniarpc/entity"
-	"mashiroc.fun/begoniarpc/util/log"
+	"mashiroc.fun/begonia/conn"
+	"mashiroc.fun/begonia/entity"
+	"mashiroc.fun/begonia/util/log"
 )
 
+// callHandler 处理远程调用请求的实体
 type callHandler struct {
-	remoteFun *serviceMap
+	remoteFun *serviceMap // 所有注册的服务
 }
 
-type request struct {
-	Uuid  string                 `json:"1"`
-	Name  string                 `json:"2"`
-	Fun   string                 `json:"3"`
-	Param map[string]interface{} `json:"4"`
-}
-
-type service struct {
-	name string
-	fun  []string
-	c    conn.Conn
-}
-
+// signService 注册服务
 func (h *callHandler) signService(s service) (err error) {
 	if _, ok := h.remoteFun.Get(s.name); ok {
-		log.Warn("service has signed", s)
+		log.Warn("servive [%s] has signed", s.name)
 		return entity.ServiceSignedErr
 	}
-	log.Info(s.c.Addr(), "注册服务:", s.name, "[", s.fun, "]")
 	h.remoteFun.Set(s.name, s)
 	return
 }
 
+// unsignService 注销服务
 func (h *callHandler) unsignService(s service) (err error) {
 	if _, ok := h.remoteFun.Get(s.name); !ok {
-		log.Warn("service not sign", s)
+		log.Warn("service [%s] not sign", s.name)
 		return entity.ServiceSignedErr
 	}
 
@@ -44,37 +35,32 @@ func (h *callHandler) unsignService(s service) (err error) {
 	return
 }
 
+// unBindService 解绑和conn有关的服务
 func (h *callHandler) unBindService(c conn.Conn) (err error) {
 	h.remoteFun.Unbind(c)
 	return
 }
 
-func (h *callHandler) call(uuid, name, fun string, param entity.Param) (err error) {
-	service, ok := h.remoteFun.Get(name)
+// call 远程调用
+func (h *callHandler) call(req entity.Request) (err error) {
+	service, ok := h.remoteFun.Get(req.Service)
 	if !ok {
-		log.Warn("service not found", err)
+		log.Warn("call service [%s] not found", req.Service)
 		return entity.ServiceNotFoundErr
 	}
 
 	for _, f := range service.fun {
-		if f == fun {
-			req := request{
-				Uuid:  uuid,
-				Name:  name,
-				Fun:   fun,
-				Param: param,
-			}
+		if f == req.Fun {
 			b, _ := json.Marshal(req)
-			if err := service.c.WriteRequest(b); err != nil {
-				log.Warn(err)
-			}
+			err = service.c.WriteRequest(b)
 			return
 		}
 	}
-	log.Warn("function not found", err)
+	log.Warn("call function [%s] not found", req.Fun)
 	return entity.FunctionNotFoundErr
 }
 
+// newCallHandler 构造函数
 func newCallHandler() *callHandler {
 	return &callHandler{remoteFun: NewServiceMap(5)}
 }

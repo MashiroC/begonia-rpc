@@ -1,9 +1,9 @@
-package begonia_rpc
+package begonia
 
 import (
-	"mashiroc.fun/begoniarpc/conn"
-	"mashiroc.fun/begoniarpc/entity"
-	"mashiroc.fun/begoniarpc/util/log"
+	"mashiroc.fun/begonia/conn"
+	"mashiroc.fun/begonia/entity"
+	"mashiroc.fun/begonia/util/log"
 )
 
 type respHandler struct {
@@ -49,7 +49,7 @@ func (h *respHandler) CallBack(uuid string, data entity.Param) (err error) {
 			ErrCode:    "114514",
 			ErrMessage: "callback uuid not found :" + uuid,
 		}
-		//return entity.CallbackUuidNotFoundErr
+		//return entity.CallbackNotSignedErr
 	}
 	resp := entity.DefaultResponse{
 		Uuid: uuid,
@@ -63,7 +63,7 @@ func (h *respHandler) CallBack(uuid string, data entity.Param) (err error) {
 func (h *respHandler) CallBackErr(uuid string, cErr entity.CallError) (err error) {
 	f, ok := h.ch.Get(uuid)
 	if !ok {
-		return entity.CallbackUuidNotFoundErr
+		return entity.CallbackNotSignedErr
 	}
 	resp := entity.ErrResponse{
 		Uuid:    uuid,

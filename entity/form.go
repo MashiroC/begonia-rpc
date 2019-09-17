@@ -1,7 +1,7 @@
 package entity
 
-type RequestForm struct {
-	Uuid    string `json:"1"`
+type Request struct {
+	UUID    string `json:"1"`
 	Service string `json:"2"`
 	Fun     string `json:"3"`
 	Data    Param  `json:"4"`
