@@ -38,5 +38,5 @@ func log(level int, format string, in ...interface{}) {
 }
 
 func logPrint(color int, message string) {
-	fmt.Printf("\x1b[0;%dm%s\x1b[0m", color, message)
+	fmt.Printf("\x1b[0;%dm%s\x1b[0m\n", color, message)
 }

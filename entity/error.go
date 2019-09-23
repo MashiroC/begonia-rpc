@@ -31,6 +31,16 @@ var (
 		ErrCode:    "114514",
 		ErrMessage: "callback uuid not found",
 	}
+
+	RespEmptyError = CallError{
+		ErrCode:    "114514",
+		ErrMessage: "response empty",
+	}
+
+	RespTypeError = CallError{
+		ErrCode:    "114514",
+		ErrMessage: "response kind not allow",
+	}
 )
 
 func (c CallError) Error() string {

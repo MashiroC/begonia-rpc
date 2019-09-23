@@ -1,4 +1,6 @@
-package begonia
+package begoniarpc
+
+// repo.go 响应处理的handler
 
 import (
 	"mashiroc.fun/begonia/conn"
@@ -6,26 +8,29 @@ import (
 	"mashiroc.fun/begonia/util/log"
 )
 
+// respHandler 响应处理的实体
 type respHandler struct {
 	ch *WaitChan
 }
 
+// newRespHandler 构造函数
 func newRespHandler() *respHandler {
 	return &respHandler{ch: NewWaitChan(100)}
 }
 
-func (h *respHandler) signCallBack(uuid string, conn conn.Conn) (err error) {
+// signCallback 注册一个回调
+func (h *respHandler) signCallback(uuid string, conn conn.Conn) (err error) {
 	ch := make(chan entity.Response, 1)
 	h.ch.Set(uuid, func(resp entity.Response) {
 		ch <- resp
 	})
-	go h.waitCallBack(ch, conn)
+	go h.waitCallback(ch, conn)
 	return
 }
 
-// waitCallBack 等待回调成功
-// 这里做成这样而不是直接用连接放到map里是为了做超时
-func (h *respHandler) waitCallBack(ch chan entity.Response, conn conn.Conn) {
+// waitCallback 等待回调
+// 这里做成这样而不是直接用连接放到map里是为了做超时(大概
+func (h *respHandler) waitCallback(ch chan entity.Response, conn conn.Conn) {
 	resp := <-ch
 
 	if _, ok := resp.(entity.DefaultResponse); ok {
@@ -42,8 +47,11 @@ func (h *respHandler) waitCallBack(ch chan entity.Response, conn conn.Conn) {
 
 }
 
-func (h *respHandler) CallBack(uuid string, data entity.Param) (err error) {
+// callback 请求完了之后等待响应 响应到了就回调
+func (h *respHandler) Callback(uuid string, data entity.Param) (err error) {
 	f, ok := h.ch.Get(uuid)
+	h.ch.Remove(uuid)
+
 	if !ok {
 		return entity.CallError{
 			ErrCode:    "114514",
@@ -55,12 +63,13 @@ func (h *respHandler) CallBack(uuid string, data entity.Param) (err error) {
 		Uuid: uuid,
 		Data: data,
 	}
+	log.Info("call %s resp",uuid)
 	f(resp)
-	h.ch.Remove(uuid)
 	return
 }
 
-func (h *respHandler) CallBackErr(uuid string, cErr entity.CallError) (err error) {
+// callbackErr 服务端发来err 回调把这个err返回给client
+func (h *respHandler) CallbackErr(uuid string, cErr entity.CallError) (err error) {
 	f, ok := h.ch.Get(uuid)
 	if !ok {
 		return entity.CallbackNotSignedErr

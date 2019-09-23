@@ -1,7 +1,7 @@
-// begonia-rpc 轻量级rpc框架
+// sdk-rpc 轻量级rpc框架
 // 架构分为客户端 服务端 服务中心三部分
 // By MashiroC
-package begonia
+package begoniarpc
 
 import (
 	"encoding/json"
@@ -37,14 +37,20 @@ func (s *ServerCenter) Run(addr string) {
 			log.Error("conn failed : %s", err)
 			continue
 		}
-		c := begoniaConn.NewConn(conn)
+		c := begoniaConn.New(conn)
 		go s.work(c)
 	}
 }
 
 // respError 向某条连接写一个异常
-func respError(conn begoniaConn.Conn, cErr entity.CallError) {
+func respError(conn begoniaConn.Conn, uuid string, cErr entity.CallError) {
 	log.Error("remote [%s] frame has some error: %s", conn.Addr(), cErr.Error())
-	b, _ := json.Marshal(cErr)
+	eForm := entity.ErrForm{
+		Uuid:    uuid,
+		ErrCode: cErr.ErrCode,
+		ErrMsg:  cErr.ErrMessage,
+	}
+	b, _ := json.Marshal(eForm)
+
 	_ = conn.WriteError(b)
 }

@@ -154,7 +154,7 @@ func (c *DefaultConn) Close() error {
 	return c.conn.Close()
 }
 
-func NewConn(conn net.Conn) (res Conn) {
+func New(conn net.Conn) (res Conn) {
 	r := bufio.NewReader(conn)
 	w := bufio.NewWriter(conn)
 	buf := bufio.NewReadWriter(r, w)

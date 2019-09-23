@@ -1,6 +1,6 @@
-package begonia
+package begoniarpc
 
-// call.go 远程调用的处理中心
+// handler_call.go 远程调用的处理中心
 
 import (
 	"encoding/json"
@@ -62,5 +62,5 @@ func (h *callHandler) call(req entity.Request) (err error) {
 
 // newCallHandler 构造函数
 func newCallHandler() *callHandler {
-	return &callHandler{remoteFun: NewServiceMap(5)}
+	return &callHandler{remoteFun: newServiceMap(5)}
 }

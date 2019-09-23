@@ -1,4 +1,4 @@
-package begonia
+package begoniarpc
 
 // handler.go 处理各种帧的函数
 
@@ -11,7 +11,6 @@ import (
 
 // handlerSign 处理注册帧
 func (s *ServerCenter) handlerSign(conn conn.Conn, data []byte) {
-
 	// 先检查data的json对不对 json不对直接关了
 	form := entity.SignForm{}
 	err := json.Unmarshal(data, &form)
@@ -41,7 +40,7 @@ func (s *ServerCenter) handlerSign(conn conn.Conn, data []byte) {
 			}
 			// 注册服务 如果有错误 直接把连接关了 错误返回到注册方
 			if err := s.call.signService(ser); err != nil {
-				respError(conn, err.(entity.CallError))
+				respError(conn, "", err.(entity.CallError))
 			}
 
 		}
@@ -51,7 +50,6 @@ func (s *ServerCenter) handlerSign(conn conn.Conn, data []byte) {
 
 // handlerRequest 处理远程调用请求帧
 func (s *ServerCenter) handlerRequest(conn conn.Conn, data []byte) {
-
 	// 先检查data的json对不对 json不对直接关了
 	form := entity.Request{}
 	if err := json.Unmarshal(data, &form); err != nil {
@@ -62,7 +60,7 @@ func (s *ServerCenter) handlerRequest(conn conn.Conn, data []byte) {
 
 	// 检查一个帧要调用的service和function是否存在
 	if form.Service == "" || form.Fun == "" {
-		respError(conn, entity.ServiceNotFoundErr)
+		respError(conn, form.UUID, entity.ServiceNotFoundErr)
 		return
 	}
 
@@ -73,14 +71,14 @@ func (s *ServerCenter) handlerRequest(conn conn.Conn, data []byte) {
 	// 会先收到response包再注册回调 这样子uuid会找不到
 
 	// 注册一个回调
-	if err := s.resp.signCallBack(form.UUID, conn); err != nil {
-		respError(conn, err.(entity.CallError))
+	if err := s.resp.signCallback(form.UUID, conn); err != nil {
+		respError(conn, form.UUID, err.(entity.CallError))
 	}
 
-	// Remote Process Call
+	// Remote Process call
 	if err := s.call.call(form); err != nil {
 		// call error 这个应该直接返回给这条连接
-		respError(conn, err.(entity.CallError))
+		respError(conn, form.UUID, err.(entity.CallError))
 		return
 	}
 
@@ -100,13 +98,13 @@ func (s *ServerCenter) handlerResponse(conn conn.Conn, data []byte) {
 	// 先找uuid有没有 uuid没有就是没有注册回调
 	if form.Uuid == "" {
 		// uuid not found 这个应该直接返回给这条连接
-		respError(conn, entity.CallbackNotSignedErr)
+		respError(conn,form.Uuid, entity.CallbackNotSignedErr)
 		return
 	}
 
 	// 有uuid 去回调
-	if err := s.resp.CallBack(form.Uuid, form.Data); err != nil {
-		respError(conn, err.(entity.CallError))
+	if err := s.resp.Callback(form.Uuid, form.Data); err != nil {
+		respError(conn,form.Uuid, err.(entity.CallError))
 		return
 	}
 }
@@ -114,7 +112,6 @@ func (s *ServerCenter) handlerResponse(conn conn.Conn, data []byte) {
 // handlerError 处理错误帧
 // 这个错误帧指的是收到的error frame 不是异常帧
 func (s *ServerCenter) handlerError(conn conn.Conn, data []byte) {
-
 	// 先检查data的json对不对 json不对直接关了
 	form := entity.ErrForm{}
 	if err := json.Unmarshal(data, &form); err != nil {
@@ -125,7 +122,7 @@ func (s *ServerCenter) handlerError(conn conn.Conn, data []byte) {
 
 	// 这里和响应的逻辑基本一样 只不过回调传的是error
 	if form.Uuid == "" {
-		respError(conn, entity.CallbackNotSignedErr)
+		respError(conn, "", entity.CallbackNotSignedErr)
 		return
 	}
 
@@ -134,8 +131,8 @@ func (s *ServerCenter) handlerError(conn conn.Conn, data []byte) {
 		ErrCode:    form.ErrCode,
 		ErrMessage: form.ErrMsg,
 	}
-	if err := s.resp.CallBackErr(form.Uuid, cErr); err != nil {
-		respError(conn, err.(entity.CallError))
+	if err := s.resp.CallbackErr(form.Uuid, cErr); err != nil {
+		respError(conn,form.Uuid ,err.(entity.CallError))
 	}
 }
 
