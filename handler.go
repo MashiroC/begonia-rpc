@@ -4,9 +4,9 @@ package begoniarpc
 
 import (
 	"encoding/json"
-	"mashiroc.fun/begonia/conn"
-	"mashiroc.fun/begonia/entity"
-	"mashiroc.fun/begonia/util/log"
+	"github.com/MashiroC/begonia-rpc/conn"
+	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/util/log"
 )
 
 // handlerSign 处理注册帧

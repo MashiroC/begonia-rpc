@@ -1,8 +1,8 @@
 package begonia
 
 import (
-	begoniarpc "mashiroc.fun/begonia"
-	"mashiroc.fun/begonia/entity"
+	begoniarpc "github.com/MashiroC/begonia-rpc"
+	"github.com/MashiroC/begonia-rpc/entity"
 )
 
 type ResponseHandler struct {

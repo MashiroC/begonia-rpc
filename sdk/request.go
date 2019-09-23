@@ -1,6 +1,6 @@
 package begonia
 
-import "mashiroc.fun/begonia/entity"
+import "github.com/MashiroC/begonia-rpc/entity"
 
 type Request struct {
 	Service  string

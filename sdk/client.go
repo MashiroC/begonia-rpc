@@ -3,9 +3,9 @@ package begonia
 import (
 	"encoding/json"
 	"github.com/satori/go.uuid"
-	begoniarpc "mashiroc.fun/begonia"
-	"mashiroc.fun/begonia/conn"
-	"mashiroc.fun/begonia/entity"
+	begoniarpc "github.com/MashiroC/begonia-rpc"
+	"github.com/MashiroC/begonia-rpc/conn"
+	"github.com/MashiroC/begonia-rpc/entity"
 )
 
 type Client struct {

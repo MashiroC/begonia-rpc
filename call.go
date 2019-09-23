@@ -4,9 +4,9 @@ package begoniarpc
 
 import (
 	"encoding/json"
-	"mashiroc.fun/begonia/conn"
-	"mashiroc.fun/begonia/entity"
-	"mashiroc.fun/begonia/util/log"
+	"github.com/MashiroC/begonia-rpc/conn"
+	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/util/log"
 )
 
 // callHandler 处理远程调用请求的实体

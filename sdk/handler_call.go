@@ -2,8 +2,8 @@ package begonia
 
 import (
 	"encoding/json"
-	"mashiroc.fun/begonia/conn"
-	"mashiroc.fun/begonia/entity"
+	"github.com/MashiroC/begonia-rpc/conn"
+	"github.com/MashiroC/begonia-rpc/entity"
 )
 
 type CallHandler struct {

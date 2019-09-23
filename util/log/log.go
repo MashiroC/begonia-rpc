@@ -32,7 +32,7 @@ func Fatal(format string, i ...interface{}) {
 func log(level int, format string, in ...interface{}) {
 	now := time.Now().String()
 	now = now[:19]
-	header := fmt.Sprintf("[magicloop] %s | ", now)
+	header := fmt.Sprintf("[Begonia-RPC] %s | ", now)
 	message := header + fmt.Sprintf(format, in...)
 	logPrint(level, message)
 }

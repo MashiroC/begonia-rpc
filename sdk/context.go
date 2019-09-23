@@ -1,8 +1,8 @@
 package begonia
 
 import (
-	"mashiroc.fun/begonia/entity"
-	"mashiroc.fun/begonia/util/log"
+	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/util/log"
 	"sync"
 )
 

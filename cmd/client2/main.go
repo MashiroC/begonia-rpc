@@ -6,21 +6,22 @@ package main
 
 import (
 	"fmt"
-	"mashiroc.fun/begonia/entity"
-	begonia "mashiroc.fun/begonia/sdk"
+	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/sdk"
 )
 
 func main() {
 	cli := begonia.New("localhost:1234")
+
 	req := begonia.Request{
 		Service:  "Math",
 		Function: "Sum",
 		Param:    entity.Param{"a": 1, "b": 1},
 	}
-	resp := cli.Call(req)
-	fmt.Println("call")
 
+	resp := cli.Call(req)
 	i := resp.Int()
+
 	if resp.Error() != nil {
 		fmt.Println(resp.Error())
 	} else {
@@ -28,8 +29,6 @@ func main() {
 	}
 
 	cli.CallAsync(req, func(resp *begonia.Response) {
-		fmt.Println("async")
-
 		i := resp.Int()
 		if resp.Error() != nil {
 			fmt.Println(resp.Error())
@@ -37,7 +36,8 @@ func main() {
 			fmt.Println(i)
 		}
 	})
-	wait:=make(chan bool)
+
+
+	wait := make(chan bool)
 	<-wait
-	//cli.CallAsync(resp.S)
 }

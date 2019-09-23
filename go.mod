@@ -1,4 +1,4 @@
-module mashiroc.fun/begonia
+module github.com/MashiroC/begonia-rpc
 
 go 1.12
 

@@ -3,9 +3,9 @@ package begoniarpc
 // repo.go 响应处理的handler
 
 import (
-	"mashiroc.fun/begonia/conn"
-	"mashiroc.fun/begonia/entity"
-	"mashiroc.fun/begonia/util/log"
+	"github.com/MashiroC/begonia-rpc/conn"
+	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/util/log"
 )
 
 // respHandler 响应处理的实体

@@ -1,7 +1,7 @@
 package begonia
 
 import (
-	"mashiroc.fun/begonia/entity"
+	"github.com/MashiroC/begonia-rpc/entity"
 	"reflect"
 )
 

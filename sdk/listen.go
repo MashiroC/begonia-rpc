@@ -2,10 +2,10 @@ package begonia
 
 import (
 	"encoding/json"
+	"github.com/MashiroC/begonia-rpc/conn"
+	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/util/log"
 	"io"
-	"mashiroc.fun/begonia/conn"
-	"mashiroc.fun/begonia/entity"
-	"mashiroc.fun/begonia/util/log"
 	"net"
 )
 

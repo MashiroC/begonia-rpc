@@ -3,7 +3,7 @@ package begonia
 // service.go 服务的实体和存服务的map
 
 import (
-	"mashiroc.fun/begonia/entity"
+	"github.com/MashiroC/begonia-rpc/entity"
 	"reflect"
 	"sync"
 )

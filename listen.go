@@ -4,8 +4,8 @@ package begoniarpc
 
 import (
 	"io"
-	"mashiroc.fun/begonia/conn"
-	"mashiroc.fun/begonia/util/log"
+	"github.com/MashiroC/begonia-rpc/conn"
+	"github.com/MashiroC/begonia-rpc/util/log"
 	"net"
 )
 

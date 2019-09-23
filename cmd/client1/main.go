@@ -5,8 +5,8 @@
 package main
 
 import (
-	"fmt"
-	"mashiroc.fun/begonia/sdk"
+	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/sdk"
 )
 
 type MathService struct {
@@ -21,17 +21,17 @@ func (s *MathService) Sum(c *begonia.Context) {
 	c.Int(int(a + b))
 }
 
-func (h *HelloService) Test(name string) {
-	fmt.Println("reflect ok")
+func (h *HelloService) Hello(c *begonia.Context) {
+	c.String("World!")
 }
 
-func (h *HelloService) Hello(c *begonia.Context) {
-	c.Int(1234)
+func (h *HelloService) Fun1(c *begonia.Context) {
+	c.JSON(entity.Param{"hello": "world"})
 }
 
 func main() {
 	cli := begonia.New("localhost:1234")
 	cli.Sign("Hello", &HelloService{})
-	cli.Sign("Math",&MathService{})
+	cli.Sign("Math", &MathService{})
 	cli.Wait()
 }

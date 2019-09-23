@@ -2,7 +2,7 @@ package begoniarpc
 
 import (
 	"fmt"
-	"mashiroc.fun/begonia/entity"
+	"github.com/MashiroC/begonia-rpc/entity"
 	"sync"
 )
 
