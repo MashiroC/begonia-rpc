@@ -30,8 +30,8 @@ func (h *HelloService) Fun1(c *begonia.Context) {
 }
 
 func main() {
-	cli := begonia.New("localhost:1234")
+	cli := begonia.New("localhost:4949")
 	cli.Sign("Hello", &HelloService{})
 	cli.Sign("Math", &MathService{})
-	cli.Wait()
+	cli.KeepConnect()
 }

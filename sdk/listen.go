@@ -16,7 +16,7 @@ func (cli *Client) connection(addr string) conn.Conn {
 	if err != nil {
 		panic(err.Error())
 	}
-
+	log.Info("%s connect accept", addr)
 	return conn.New(c)
 }
 

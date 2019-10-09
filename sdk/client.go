@@ -5,15 +5,19 @@ import (
 	begoniarpc "github.com/MashiroC/begonia-rpc"
 	"github.com/MashiroC/begonia-rpc/conn"
 	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/util/log"
 	"github.com/satori/go.uuid"
+	"time"
 )
 
 type Client struct {
-	call *CallHandler
-	resp *ResponseHandler
-	pc   *ProcessCallHandler
-	conn conn.Conn
-	wait chan bool
+	addr      string
+	signCache []entity.SignEntity
+	call      *CallHandler
+	resp      *ResponseHandler
+	pc        *ProcessCallHandler
+	conn      conn.Conn
+	wait      chan bool
 }
 
 type Callback = func(*Response)
@@ -23,16 +27,22 @@ type CallbackChan = chan entity.Response
 // New 创建客户端并监听端口
 func New(addr string) *Client {
 	cli := &Client{
-		call: &CallHandler{},
-		resp: &ResponseHandler{cbMap: begoniarpc.NewWaitChan(255)},
-		pc:   &ProcessCallHandler{service: newServiceMap(5)},
-		wait: make(chan bool, 2),
+		addr:      addr,
+		signCache: make([]entity.SignEntity, 0),
+		call:      &CallHandler{},
+		resp:      &ResponseHandler{cbMap: begoniarpc.NewWaitChan(255)},
+		pc:        &ProcessCallHandler{service: newServiceMap(5)},
+		wait:      make(chan bool, 2),
 	}
-	c := cli.connection(addr)
+	cli.connectAndListen()
+	return cli
+}
+
+func (cli *Client) connectAndListen() {
+	c := cli.connection(cli.addr)
 	cli.conn = c
 	cli.call.conn = c
 	go cli.listen()
-	return cli
 }
 
 // call 同步调用
@@ -77,6 +87,7 @@ func (cli *Client) Sign(name string, in interface{}) {
 		Fun:    fun,
 		IsMore: false,
 	}
+	cli.signCache = append(cli.signCache, e)
 	form := entity.SignForm{Sign: []entity.SignEntity{e}}
 	b, _ := json.Marshal(form)
 
@@ -85,4 +96,43 @@ func (cli *Client) Sign(name string, in interface{}) {
 
 func (cli *Client) Wait() {
 	<-cli.wait
+}
+
+func (cli *Client) KeepConnect() {
+
+	for {
+		<-cli.wait
+
+		time.Sleep(3 * time.Second)
+		ok := Must(cli.connectAndListen, cli.wait)
+		if ok {
+			Must(cli.reSign, cli.wait)
+		}
+
+	}
+
+}
+
+// reSign 断开连接后重新注册服务
+func (cli *Client) reSign() {
+	if len(cli.signCache) != 0 {
+		form := entity.SignForm{Sign: cli.signCache}
+		b, _ := json.Marshal(form)
+
+		_ = cli.conn.WriteSign(b)
+	}
+
+}
+
+func Must(fun func(), ch chan bool) (res bool) {
+	defer func() {
+		if re := recover(); re != nil {
+			log.Warn("recover something : %s", re)
+			ch <- true
+			res = false
+		}
+	}()
+	fun()
+	res = true
+	return
 }
