@@ -10,5 +10,5 @@ import (
 
 func main() {
 	rpc := begoniarpc.Default()
-	rpc.Run("0.0.0.0:1234")
+	rpc.Run("0.0.0.0:4949")
 }

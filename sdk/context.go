@@ -12,6 +12,7 @@ type Context struct {
 	isRes bool
 	Param entity.Param
 	res   entity.Param
+	err   error
 }
 
 func (c *Context) write(p entity.Param) {
@@ -39,8 +40,19 @@ func (c *Context) Int(i int) {
 	c.writeOne(i)
 }
 
-func (c *Context) JSON(param entity.Param) {
-	c.write(param)
+func (c *Context) Error(err error) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.err = err
+	c.isRes = true
+}
+
+func (c *Context) JSON(in interface{}) {
+	if param, ok := in.(entity.Param); ok {
+		c.write(param)
+		return
+	}
+
 }
 
 func newContext(req entity.Request) *Context {

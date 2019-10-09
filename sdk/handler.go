@@ -2,6 +2,7 @@ package begonia
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/MashiroC/begonia-rpc/entity"
 	"github.com/MashiroC/begonia-rpc/util/log"
 )
@@ -20,7 +21,7 @@ func (cli *Client) handlerRequest(data []byte) {
 
 	// 检查一个帧要调用的service和function是否存在
 	if req.Service == "" || req.Fun == "" {
-		cli.respError(entity.ServiceNotFoundErr)
+		cli.respError(req.UUID, entity.ServiceNotFoundErr)
 		return
 	}
 
@@ -28,17 +29,14 @@ func (cli *Client) handlerRequest(data []byte) {
 
 	resp, err := cli.pc.call(req)
 	if err != nil {
-		// TODO:err
-		cli.respError(err)
+		// TODO:Err
+		//cli.conn.WriteError()
+		fmt.Println("errorerror", err, req.UUID)
+		//cli.respError(req.UUID,err)
+		return
 	}
 
-	if r, ok := resp.(entity.DefaultResponse); ok {
-		_ = cli.conn.WriteResponse(r.Response())
-	}
-
-	if r, ok := resp.(entity.ErrResponse); ok {
-		_ = cli.conn.WriteError(r.Response())
-	}
+	_ = cli.conn.WriteResponse(resp.Response())
 }
 
 // handlerResponse 处理远程调用响应帧
@@ -54,14 +52,14 @@ func (cli *Client) handlerResponse(data []byte) {
 
 	// 先找uuid有没有 uuid没有就是没有注册回调
 	if form.Uuid == "" {
-		// uuid not found 这个应该直接返回给这条连接
-		cli.respError(entity.CallbackNotSignedErr)
+		// Uuid not found 这个应该直接返回给这条连接
+		cli.respError("", entity.CallbackNotSignedErr)
 		return
 	}
 
 	// 有uuid 去回调
 	if err := cli.resp.callback(form.Uuid, form.Data); err != nil {
-		cli.respError(err)
+		cli.respError(form.Uuid, err)
 		return
 	}
 }
@@ -81,7 +79,7 @@ func (cli *Client) handlerError(data []byte) {
 	// 这里和响应的逻辑基本一样 只不过回调传的是error
 	if form.Uuid == "" {
 		//cli.respError(entity.CallbackNotSignedErr)
-		log.Error("fuck uuid")
+		log.Error("fuck Uuid")
 		return
 	}
 
@@ -91,6 +89,6 @@ func (cli *Client) handlerError(data []byte) {
 		ErrMessage: form.ErrMsg,
 	}
 	if err := cli.resp.callbackErr(form.Uuid, cErr); err != nil {
-		cli.respError(err)
+		cli.respError(form.Uuid, err)
 	}
 }

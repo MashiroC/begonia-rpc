@@ -15,13 +15,13 @@ const (
 )
 
 type Response struct {
-	uuid string
-	data entity.Param
-	err  error
+	Uuid string
+	Data entity.Param
+	Err  error
 }
 
 func (r Response) Error() error {
-	return r.err
+	return r.Err
 }
 
 func (r *Response) Int() (res int) {
@@ -43,20 +43,20 @@ func (r *Response) StringOr(or string) (res string) {
 }
 
 func (r *Response) respOnce(or interface{}, k reflect.Kind) (res interface{}) {
-	if r.err != nil {
+	if r.Err != nil {
 		res = or
 		return
 	}
 
 	defer func() {
 		if err := recover(); err != nil {
-			r.err = err.(error)
+			r.Err = err.(error)
 			// or
 			res = or
 		}
 	}()
 
-	res = r.data[r.uuid]
+	res = r.Data[r.Uuid]
 
 	if res == nil {
 		panic(entity.RespEmptyError)
@@ -73,34 +73,39 @@ func (r *Response) respOnce(or interface{}, k reflect.Kind) (res interface{}) {
 }
 
 func (r *Response) Params() entity.Param {
-	return r.data
+	return r.Data
 }
 
 func newResponseFromEntity(resp entity.Response) (res *Response) {
 	if r, ok := resp.(entity.DefaultResponse); ok {
 		res = &Response{
-			uuid: r.Uuid,
-			data: r.Data,
-			err:  nil,
+			Uuid: r.Uuid,
+			Err:  nil,
 		}
+		if _, ok := r.Data["errCode"]; ok {
+			res.Err = entity.NewError(r.Data["errCode"].(string), r.Data["errMsg"].(string))
+		} else {
+			res.Data = r.Data
+		}
+
 		return
 	}
 
 	if r, ok := resp.(entity.ErrResponse); ok {
 		res = &Response{
-			uuid: r.Uuid,
-			data: nil,
-			err:  entity.NewError(r.ErrCode, r.ErrMsg),
+			Uuid: r.Uuid,
+			Data: nil,
+			Err:  entity.NewError(r.ErrCode, r.ErrMsg),
 		}
 		return
 	}
 	return
 }
 
-func newErrorResponse(err error) *Response {
+func newErrorResponse(uuid string, err error) *Response {
 	return &Response{
-		uuid: "",
-		data: nil,
-		err:  err,
+		Uuid: uuid,
+		Data: nil,
+		Err:  err,
 	}
 }

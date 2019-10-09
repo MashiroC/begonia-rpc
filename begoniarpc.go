@@ -31,6 +31,7 @@ func (s *ServerCenter) Run(addr string) {
 	if err != nil {
 		panic(err)
 	}
+	log.Info("RPC center start on %s", addr)
 	for {
 		conn, err := listener.Accept()
 		if err != nil {

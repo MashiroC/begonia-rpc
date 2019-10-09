@@ -1,6 +1,8 @@
 package entity
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type Response interface {
 	Response() []byte
@@ -13,7 +15,14 @@ type ErrResponse struct {
 }
 
 func (r ErrResponse) Response() []byte {
-	b, _ := json.Marshal(r)
+	tmp := DefaultResponse{
+		Uuid: r.Uuid,
+		Data: Param{
+			"errCode": r.ErrCode,
+			"errMsg":  r.ErrMsg,
+		},
+	}
+	b, _ := json.Marshal(tmp)
 	return b
 }
 

@@ -4,6 +4,7 @@ package begoniarpc
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/MashiroC/begonia-rpc/conn"
 	"github.com/MashiroC/begonia-rpc/entity"
 	"github.com/MashiroC/begonia-rpc/util/log"
@@ -98,13 +99,14 @@ func (s *ServerCenter) handlerResponse(conn conn.Conn, data []byte) {
 	// 先找uuid有没有 uuid没有就是没有注册回调
 	if form.Uuid == "" {
 		// uuid not found 这个应该直接返回给这条连接
-		respError(conn,form.Uuid, entity.CallbackNotSignedErr)
+		respError(conn, form.Uuid, entity.CallbackNotSignedErr)
 		return
 	}
 
 	// 有uuid 去回调
 	if err := s.resp.Callback(form.Uuid, form.Data); err != nil {
-		respError(conn,form.Uuid, err.(entity.CallError))
+		//respError(conn,form.Uuid,err.(entity.CallError))
+		fmt.Println("fuckfuck")
 		return
 	}
 }
@@ -115,14 +117,16 @@ func (s *ServerCenter) handlerError(conn conn.Conn, data []byte) {
 	// 先检查data的json对不对 json不对直接关了
 	form := entity.ErrForm{}
 	if err := json.Unmarshal(data, &form); err != nil {
-		log.Error("error frame json [%s] error [%s] form addr: [%s]", string(data), err.Error(), conn.Addr())
+		fmt.Println(err)
+		fmt.Println(string(data))
+		//log.Error("error frame json [%s] error [%s] form addr: [%s]", string(data), err.Error(), conn.Addr())
 		s.closeWith(conn, err)
 		return
 	}
 
 	// 这里和响应的逻辑基本一样 只不过回调传的是error
 	if form.Uuid == "" {
-		respError(conn, "", entity.CallbackNotSignedErr)
+		//respError(conn, "", entity.CallbackNotSignedErr)
 		return
 	}
 
@@ -132,7 +136,7 @@ func (s *ServerCenter) handlerError(conn conn.Conn, data []byte) {
 		ErrMessage: form.ErrMsg,
 	}
 	if err := s.resp.CallbackErr(form.Uuid, cErr); err != nil {
-		respError(conn,form.Uuid ,err.(entity.CallError))
+		//respError(conn,form.Uuid ,err.(entity.CallError))
 	}
 }
 

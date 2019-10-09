@@ -3,7 +3,9 @@ package begonia
 // service.go 服务的实体和存服务的map
 
 import (
+	"errors"
 	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/MashiroC/begonia-rpc/util/log"
 	"reflect"
 	"sync"
 )
@@ -15,8 +17,19 @@ type service struct {
 	in   reflect.Value
 }
 
-func (s *service) do(fun string, c *Context) entity.Param {
+func (s *service) do(fun string, c *Context) (res entity.Param, err error) {
 	// find func
+	defer func() {
+		if re := recover(); re != nil {
+			if reErr, ok := re.(error); ok {
+				log.Error("recover error:%s", reErr.Error())
+				err = reErr
+				return
+			}
+			log.Error("recover unknown:%s", re)
+			err = errors.New("unknown error")
+		}
+	}()
 	var f *remoteFun
 	for _, v := range s.fun {
 		if v.name == fun {
@@ -33,12 +46,9 @@ type remoteFun struct {
 	fun  reflect.Value
 }
 
-func (rf *remoteFun) do(value reflect.Value, c *Context) (entity.Param) {
+func (rf *remoteFun) do(value reflect.Value, c *Context) (entity.Param, error) {
 	rf.fun.Call([]reflect.Value{value, reflect.ValueOf(c)})
-	if !c.isRes{
-		//c.write(nil)
-	}
-	return c.res
+	return c.res, c.err
 }
 
 // serviceMap 存服务的实体 并发安全

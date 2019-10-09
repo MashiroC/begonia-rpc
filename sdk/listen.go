@@ -2,6 +2,7 @@ package begonia
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/MashiroC/begonia-rpc/conn"
 	"github.com/MashiroC/begonia-rpc/entity"
 	"github.com/MashiroC/begonia-rpc/util/log"
@@ -55,16 +56,24 @@ func (cli *Client) operator(c conn.Conn, opcode uint8, data []byte) {
 }
 
 func (cli *Client) closeWith(err error) {
-	//cli.respError(err)
+	//cli.respError(Err)
 	_ = cli.conn.Close()
 }
 
-func (cli *Client) respError(err error) {
+func (cli *Client) respError(uuid string, err error) {
 	// 如果这个错误是CallError 那么直接序列化 如果不是 把err的信息写一个新的CallError
 	cErr, ok := err.(entity.CallError)
 	if !ok {
 		cErr = entity.NewError(entity.ErrCodeUnknow, err.Error())
 	}
-	b, _ := json.Marshal(cErr)
-	_ = cli.conn.WriteError(b)
+	resp := entity.RespForm{
+		Uuid: "uuid",
+		Data: entity.Param{
+			"errCode": cErr.ErrCode,
+			"errMsg":  cErr.ErrMessage,
+		},
+	}
+	b, _ := json.Marshal(resp)
+	fmt.Println(string(b))
+	_ = cli.conn.WriteResponse(b)
 }

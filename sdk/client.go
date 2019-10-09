@@ -2,10 +2,10 @@ package begonia
 
 import (
 	"encoding/json"
-	"github.com/satori/go.uuid"
 	begoniarpc "github.com/MashiroC/begonia-rpc"
 	"github.com/MashiroC/begonia-rpc/conn"
 	"github.com/MashiroC/begonia-rpc/entity"
+	"github.com/satori/go.uuid"
 )
 
 type Client struct {
@@ -51,13 +51,13 @@ func (cli *Client) CallAsync(r Request, cb Callback) {
 	uuid := uuid.NewV4().String()
 	cbCh, err := cli.resp.signCallback(uuid, r)
 	if err != nil {
-		//TODO: handler err
-		cb(newErrorResponse(err))
+		//TODO: handler Err
+		cb(newErrorResponse(uuid, err))
 	}
 
 	if err := cli.call.call(uuid, r); err != nil {
-		//TODO: handler err
-		cb(newErrorResponse(err))
+		//TODO: handler Err
+		cb(newErrorResponse(uuid, err))
 	}
 
 	go func(cbCh CallbackChan) {

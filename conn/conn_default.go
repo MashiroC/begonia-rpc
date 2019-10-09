@@ -72,7 +72,6 @@ func (c *DefaultConn) ReadData() (opcode uint8, data []byte, err error) {
 
 	// 拿payload长度
 	payloadLen := uint(baseLen)
-
 	// baseLen如果是255 则去看扩展len
 	if baseLen == BaseLenMaxByte {
 		// 这里读了两个byte 然后转化成int
@@ -106,10 +105,13 @@ func (c *DefaultConn) WriteData(opcode int, data []byte) (err error) {
 	defer c.lock.Unlock()
 
 	payloadLenSize := 1
-	size := make([]byte, 0)
+	var size []byte
 	if len(data) >= BaseLenMax {
-		binary.BigEndian.PutUint16(size, uint16(len(data)))
-		payloadLenSize = 2
+		tmp := make([]byte, 2)
+		binary.BigEndian.PutUint16(tmp, uint16(len(data)))
+		size = []byte{255}
+		size = append(size, tmp...)
+		payloadLenSize = 3
 	} else {
 		size = append(size, byte(len(data)))
 	}

@@ -3,9 +3,9 @@ package begoniarpc
 // listen.go 监听和初步解析帧
 
 import (
-	"io"
 	"github.com/MashiroC/begonia-rpc/conn"
 	"github.com/MashiroC/begonia-rpc/util/log"
+	"io"
 	"net"
 )
 
@@ -42,6 +42,6 @@ func (s *ServerCenter) operator(c conn.Conn, opcode uint8, data []byte) {
 	case conn.OpError: // resp error
 		s.handlerError(c, data)
 	default:
-		log.Warn("unknow opcode:", opcode, string(data))
+		log.Warn("unknow opcode:%d %s", opcode, string(data))
 	}
 }

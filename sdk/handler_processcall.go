@@ -22,11 +22,28 @@ func (pc *ProcessCallHandler) call(request entity.Request) (resp entity.Response
 	}
 
 	c := newContext(request)
-	res := s.do(request.Fun, c)
-	resp = entity.DefaultResponse{
-		Uuid: request.UUID,
-		Data: res,
+	res, err := s.do(request.Fun, c)
+	if err != nil {
+		cErr, ok := err.(entity.CallError)
+		if !ok {
+			cErr = entity.CallError{
+				ErrCode:    "114514",
+				ErrMessage: err.Error(),
+			}
+		}
+		resp = entity.ErrResponse{
+			Uuid:    request.UUID,
+			ErrCode: cErr.ErrCode,
+			ErrMsg:  cErr.ErrMessage,
+		}
+		err = nil
+	} else {
+		resp = entity.DefaultResponse{
+			Uuid: request.UUID,
+			Data: res,
+		}
 	}
+
 	return
 }
 
