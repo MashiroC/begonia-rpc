@@ -47,6 +47,8 @@ func CheckToken(payload, signature, pubPki string) bool {
 func main() {
 	cli := begonia.New(":4949")
 
+	keyService:=cli.Service("key")
+	Public:=keyService.Fun("Public")
 	pubReq := begonia.Request{
 		Service:  "key",
 		Function: "Public",

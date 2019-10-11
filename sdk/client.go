@@ -121,7 +121,68 @@ func (cli *Client) reSign() {
 
 		_ = cli.conn.WriteSign(b)
 	}
+}
 
+type RemoteService struct {
+	cli     *Client
+	Service string
+}
+
+func (s RemoteService) Call(fun string, argv entity.Param) *Response {
+	req := Request{
+		Service:  s.Service,
+		Function: fun,
+		Param:    argv,
+	}
+	return s.cli.Call(req)
+}
+
+func (s RemoteService) CallAsync(fun string, argv entity.Param, cb Callback) {
+	req := Request{
+		Service:  s.Service,
+		Function: fun,
+		Param:    argv,
+	}
+	s.cli.CallAsync(req, cb)
+}
+
+type RemoteFun struct {
+	cli     *Client
+	Service string
+	Fun     string
+}
+
+func (f RemoteFun) Call(argv entity.Param) *Response {
+	req := Request{
+		Service:  f.Service,
+		Function: f.Fun,
+		Param:    argv,
+	}
+	return f.cli.Call(req)
+}
+
+func (f RemoteFun) CallAsync(argv entity.Param, cb Callback) {
+	req := Request{
+		Service:  f.Service,
+		Function: f.Fun,
+		Param:    argv,
+	}
+	f.cli.CallAsync(req, cb)
+}
+
+func (cli *Client) Service(s string) RemoteService {
+	return RemoteService{
+		cli:     cli,
+		Service: s,
+	}
+}
+
+func (s RemoteService) Fun(f string) RemoteFun {
+	return RemoteFun{
+		cli:     s.cli,
+		Service: s.Service,
+		Fun:     f,
+	}
 }
 
 func Must(fun func(), ch chan bool) (res bool) {
