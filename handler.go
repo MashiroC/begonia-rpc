@@ -77,7 +77,7 @@ func (s *ServerCenter) handlerRequest(conn conn.Conn, data []byte) {
 	}
 
 	// Remote Process call
-	if err := s.call.call(form); err != nil {
+	if err := s.call.call(form,data); err != nil {
 		// call error 这个应该直接返回给这条连接
 		respError(conn, form.UUID, err.(entity.CallError))
 		return

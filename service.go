@@ -4,13 +4,14 @@ package begoniarpc
 
 import (
 	"github.com/MashiroC/begonia-rpc/conn"
+	"github.com/MashiroC/begonia-rpc/entity"
 	"sync"
 )
 
 // service 注册的服务
 type service struct {
 	name string
-	fun  []string
+	fun  []entity.FunEntity
 	c    conn.Conn
 }
 

@@ -18,7 +18,7 @@ func (h *ResponseHandler) signCallback(uuid string, request Request) (CallbackCh
 	return ch, nil
 }
 
-func (h *ResponseHandler) callback(uuid string, params entity.Param) (err error) {
+func (h *ResponseHandler) callback(uuid string, params interface{}) (err error) {
 	f, ok := h.cbMap.Get(uuid)
 	h.cbMap.Remove(uuid)
 

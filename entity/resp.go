@@ -28,7 +28,7 @@ func (r ErrResponse) Response() []byte {
 
 type DefaultResponse struct {
 	Uuid string `json:"1"`
-	Data Param  `json:"2"`
+	Data interface{}  `json:"2"`
 }
 
 func (r DefaultResponse) Response() []byte {

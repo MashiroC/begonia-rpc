@@ -12,9 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"github.com/MashiroC/begonia-rpc/entity"
-	"github.com/MashiroC/begonia-rpc/sdk"
-	"time"
+	begonia "github.com/MashiroC/begonia-rpc/sdk"
 )
 
 func CheckToken(payload, signature, pubPki string) bool {
@@ -47,48 +45,39 @@ func CheckToken(payload, signature, pubPki string) bool {
 func main() {
 	cli := begonia.New(":4949")
 
-	keyService:=cli.Service("key")
-	Public:=keyService.Fun("Public")
-	pubReq := begonia.Request{
-		Service:  "key",
-		Function: "Public",
-		//Param:    entity.Param{"info": entity.Param{"name":"hc"}, "sub": "test","duration":time.Hour * 3},
-	}
+	helloService := cli.Service("Hello")
 
-	pubPki := cli.Call(pubReq).String()
-	fmt.Println(pubPki)
+	hello := helloService.Fun("Hello")
 
-	req := begonia.Request{
-		Service:  "key",
-		Function: "CreateToken",
-		Param:    entity.Param{"info": entity.Param{"name": "hc"}, "sub": "test", "duration": time.Hour * 3},
-	}
-	resp := cli.Call(req)
-	fmt.Println(resp.Error())
-	fmt.Println(resp.Data)
-	token := resp.String()
+	res, err := hello("mashiroc")
 
-	//arr := strings.Split(token, ".")
-	fmt.Println(token)
-	fmt.Println(resp.Error())
-	//fmt.Println()
-	//fmt.Println(CheckToken(arr[0], arr[1],pubPki))
-	//fmt.Println(resp.Error())
-	//if resp.Error() != nil {
-	//	fmt.Println(resp.Error())
-	//} else {
-	//	fmt.Println(i)
-	//}
-	//
-	//cli.CallAsync(req, func(resp *begonia.Response) {
-	//	i := resp.Int()
-	//	if resp.Error() != nil {
-	//		fmt.Println(resp.Error())
-	//	} else {
-	//		fmt.Println(i)
-	//	}
-	//})
-
-	//wait := make(chan bool)
-	//<-wait
+	fmt.Println(res,err)
 }
+
+//func main() {
+//	conn, err := net.Dial("tcp4", ":4949")
+//	if err!=nil{
+//		log.Fatal(err.Error())
+//	}
+//	c:=conn2.New(conn)
+//	r:=entity.Request{
+//		UUID:    "11111",
+//		Service: "Hello",
+//		Fun:     "Hello",
+//		Data:    []interface{}{"hc"},
+//	}
+//	b, err := json.Marshal(r)
+//	if err!=nil{
+//		log.Fatal(err.Error())
+//	}
+//	_ = c.WriteRequest(b)
+//
+//	opcode,data,err:=c.ReadData()
+//	if err!=nil{
+//		log.Fatal(err.Error())
+//	}
+//	fmt.Println(opcode)
+//	fmt.Println(string(data))
+//	wait:=make(chan bool)
+//	<-wait
+//}

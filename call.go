@@ -3,7 +3,6 @@ package begoniarpc
 // handler_call.go 远程调用的处理中心
 
 import (
-	"encoding/json"
 	"github.com/MashiroC/begonia-rpc/conn"
 	"github.com/MashiroC/begonia-rpc/entity"
 	"github.com/MashiroC/begonia-rpc/util/log"
@@ -42,7 +41,7 @@ func (h *callHandler) unBindService(c conn.Conn) (err error) {
 }
 
 // call 远程调用
-func (h *callHandler) call(req entity.Request) (err error) {
+func (h *callHandler) call(req entity.Request,b []byte) (err error) {
 	service, ok := h.remoteFun.Get(req.Service)
 	if !ok {
 		log.Warn("call service [%s] not found", req.Service)
@@ -50,8 +49,12 @@ func (h *callHandler) call(req entity.Request) (err error) {
 	}
 
 	for _, f := range service.fun {
-		if f == req.Fun {
-			b, _ := json.Marshal(req)
+		if f.Name == req.Fun {
+			if len(req.Data) != f.Size {
+				err = entity.ParamsNumErr
+				return
+			}
+			//b, _ := json.Marshal(req)
 			err = service.c.WriteRequest(b)
 			return
 		}

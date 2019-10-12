@@ -32,6 +32,11 @@ var (
 		ErrMessage: "callback uuid not found",
 	}
 
+	ParamsNumErr = CallError{
+		ErrCode:    "114514",
+		ErrMessage: "params num failed",
+	}
+
 	RespEmptyError = CallError{
 		ErrCode:    "114514",
 		ErrMessage: "response empty",

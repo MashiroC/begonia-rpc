@@ -48,7 +48,7 @@ func (h *respHandler) waitCallback(ch chan entity.Response, conn conn.Conn) {
 }
 
 // callback 请求完了之后等待响应 响应到了就回调
-func (h *respHandler) Callback(uuid string, data entity.Param) (err error) {
+func (h *respHandler) Callback(uuid string, data interface{}) (err error) {
 	f, ok := h.ch.Get(uuid)
 	h.ch.Remove(uuid)
 
@@ -63,7 +63,7 @@ func (h *respHandler) Callback(uuid string, data entity.Param) (err error) {
 		Uuid: uuid,
 		Data: data,
 	}
-	log.Info("call %s resp",uuid)
+	log.Info("call %s resp", uuid)
 	f(resp)
 	return
 }

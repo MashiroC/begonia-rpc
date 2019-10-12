@@ -17,7 +17,7 @@ type service struct {
 	in   reflect.Value
 }
 
-func (s *service) do(fun string, c *Context) (res entity.Param, err error) {
+func (s *service) do(fun string, in []interface{}) (res entity.Param, err error) {
 	// find func
 	defer func() {
 		if re := recover(); re != nil {
@@ -38,15 +38,24 @@ func (s *service) do(fun string, c *Context) (res entity.Param, err error) {
 		}
 	}
 
-	return f.do(s.in, c)
+	return f.do(s.in, in)
 }
 
 type remoteFun struct {
 	name string
+	in   []reflect.Type
 	fun  reflect.Value
 }
 
-func (rf *remoteFun) do(value reflect.Value, c *Context) (entity.Param, error) {
+func (rf *remoteFun) do(value reflect.Value, in []interface{}) (entity.Param, error) {
+	if len(rf.in) != len(in) {
+		return nil,entity.ParamsNumErr
+	}
+
+	for _,param:=range in {
+		t:=reflect.TypeOf(param)
+
+	}
 	rf.fun.Call([]reflect.Value{value, reflect.ValueOf(c)})
 	return c.res, c.err
 }

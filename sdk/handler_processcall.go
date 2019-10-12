@@ -21,8 +21,8 @@ func (pc *ProcessCallHandler) call(request entity.Request) (resp entity.Response
 		return
 	}
 
-	c := newContext(request)
-	res, err := s.do(request.Fun, c)
+	//c := newContext(request)
+	res, err := s.do(request.Fun,request.Data)
 	if err != nil {
 		cErr, ok := err.(entity.CallError)
 		if !ok {
@@ -48,7 +48,7 @@ func (pc *ProcessCallHandler) call(request entity.Request) (resp entity.Response
 }
 
 // sign 注册服务
-func (pc *ProcessCallHandler) sign(name string, in interface{}) (res []string) {
+func (pc *ProcessCallHandler) sign(name string, in interface{}) (res []entity.FunEntity) {
 	funs := make([]reflect.Method, 0)
 
 	v := reflect.ValueOf(in)
@@ -56,10 +56,12 @@ func (pc *ProcessCallHandler) sign(name string, in interface{}) (res []string) {
 	num := t.NumMethod()
 	for i := 0; i < num; i++ {
 		m := t.Method(i)
-		if checkFun(m) {
-			funs = append(funs, m)
-			res = append(res, m.Name)
+		funs = append(funs, m)
+		en := entity.FunEntity{
+			Name: m.Name,
+			Size: m.Type.NumIn(),
 		}
+		res = append(res, en)
 	}
 	pc.addService(name, v, funs)
 	return
@@ -68,8 +70,15 @@ func (pc *ProcessCallHandler) sign(name string, in interface{}) (res []string) {
 func (pc *ProcessCallHandler) addService(name string, in reflect.Value, funs []reflect.Method) {
 	rfs := make([]*remoteFun, len(funs))
 	for i, fun := range funs {
+		in := make([]reflect.Type, fun.Type.NumIn())
+		for i := 0; i < len(in); i++ {
+			funIn := fun.Type.In(i)
+			in[i] = funIn
+		}
+
 		rf := &remoteFun{
 			name: fun.Name,
+			in:   in,
 			fun:  fun.Func,
 		}
 		rfs[i] = rf
@@ -80,13 +89,4 @@ func (pc *ProcessCallHandler) addService(name string, in reflect.Value, funs []r
 		in:   in,
 	}
 	pc.service.Set(name, s)
-}
-
-func checkFun(m reflect.Method) bool {
-	t := m.Type
-	if t.NumIn() != 2 || t.In(1) != contextType || t.NumOut() != 0 {
-		//TODO 处理
-		return false
-	}
-	return true
 }
