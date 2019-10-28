@@ -36,7 +36,7 @@ func (h *respHandler) waitCallback(ch chan entity.Response, conn conn.Conn) {
 	var in interface{}
 	_ = json.Unmarshal(resp.Response(), &in)
 	if err := conn.WriteResponse(in); err != nil {
-		log.Warn("write error ", err)
+		log.Warn("write error : %v", err)
 	}
 
 }

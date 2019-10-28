@@ -1,7 +1,6 @@
 package begoniarpc
 
 import (
-	"fmt"
 	"github.com/MashiroC/begonia-rpc/entity"
 	"sync"
 )
@@ -28,9 +27,6 @@ func (w *WaitChan) Get(k string) (callback func(entity.Response), ok bool) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 	callback, ok = w.data[k]
-	if !ok {
-		fmt.Println(callback)
-	}
 	return
 }
 

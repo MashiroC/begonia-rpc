@@ -32,7 +32,7 @@ func (s *ServerCenter) handlerSign(conn conn.Conn, data []byte) {
 		} else {
 
 			// 第一次注册连接
-			log.Info("addr [%s] signed service [%s] for function %s", conn.Addr(), si.Name, si.Fun)
+			log.Info("addr [%s] signed service [%s] for function %v", conn.Addr(), si.Name, si.Fun)
 
 			ser := service{
 				name: si.Name,
