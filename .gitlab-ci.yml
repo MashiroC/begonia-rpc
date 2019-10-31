@@ -40,4 +40,4 @@ docker:
     - mkdir -p data
     - mv app data/app
     - tar -C data -cf data.tar .
-    - curl -F data=@data.tar -X POST http://202.202.43.234/rrapi/deploy/gs/begonia_rpc # 改成你的项目名
+    - curl -F data=@data.tar -X POST http://202.202.43.234/rrapi/deploy/go/begonia_rpc # 改成你的项目名
