@@ -109,14 +109,14 @@ func main() {
 > this is rpc center, if you want to provide a service, please use sdk.
 
 ```bash
-$ go build -o rpccenter ./cmd/main.go
+$ go build -o rpccenter ./cmd/server/main.go
 $ ./rpccenter
 ```
 
 or
 
 ```bash
-$ go run ./cmd/main.go
+$ go run ./cmd/server/main.go
 ```
 
 ### Release History
