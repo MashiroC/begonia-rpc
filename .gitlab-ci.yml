@@ -1,10 +1,18 @@
 image: redrock-go
 variables:
-  REPO_NAME: begonia
+  REPO_NAME: begonia-rpc
 
 before_script:
+  - mkdir -p .cache
+  - export GOPATH="$CI_PROJECT_DIR/.cache"
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR/ $GOPATH/src/$REPO_NAME
+
+cache: &global_cache
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .cache/
+  policy: pull-push
 
 stages:
   - test
@@ -13,7 +21,7 @@ stages:
 
 format:
   stage: test
-  tags:
+  tags: 
     - redrock-go
   script:
     - cd $GOPATH/src/$REPO_NAME
@@ -22,7 +30,7 @@ format:
 
 compile:
   stage: build
-  tags:
+  tags: 
     - redrock-go
   script:
     - cd $GOPATH/src/$REPO_NAME
@@ -30,14 +38,14 @@ compile:
   artifacts:
     paths:
       - app
-
-docker:
+      
+docker: 
   stage: deploy
   when: manual
   tags:
     - redrock-go
   script:
     - mkdir -p data
-    - mv app data/app
+    - mv app data/app #这条是把二进制移到指定位置，自己修改打包后的二进制名字
     - tar -C data -cf data.tar .
-    - curl -F data=@data.tar -X POST http://202.202.43.234/gsapi/deploy/begonia # 改成你的项目名
+    - curl -F data=@data.tar -X POST http://202.202.43.234/rrapi/deploy/go/begonia-rpc
