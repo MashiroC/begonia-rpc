@@ -1,6 +1,6 @@
 image: redrock-go
 variables:
-  REPO_NAME: begonia
+  REPO_NAME: begonia-rpc
 
 before_script:
   - mkdir -p .cache
@@ -48,4 +48,4 @@ docker:
     - mkdir -p data
     - mv app data/app #这条是把二进制移到指定位置，自己修改打包后的二进制名字
     - tar -C data -cf data.tar .
-    - curl -F data=@data.tar -X POST http://202.202.43.234/rrapi/deploy/go/begonia
+    - curl -F data=@data.tar -X POST http://202.202.43.234/rrapi/deploy/go/begonia-rpc
