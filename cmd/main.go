@@ -10,5 +10,5 @@ import begoniarpc "github.com/MashiroC/begonia-rpc"
 
 func main(){
 	center :=begoniarpc.Default()
-	center.Run(":8080")
+	center.Run(":12306")
 }
